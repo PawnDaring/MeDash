@@ -520,7 +520,9 @@ REGIONS.forEach((r, ri) => {
         group.add(cube);
 
         scene.add(new THREE.AmbientLight(0x666666));
-        scene.add(new THREE.DirectionalLight(0xffffff, 0.8).position.set(2, 2, 2));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(2, 2, 2);
+        scene.add(dirLight);
         scene.add(group);
 
         let animId;

@@ -150,7 +150,7 @@
   }
 
   /* load model */
-  loader.load('assets/models/me.glb', (gltf) => {
+  loader.load('assets/models/Me.glb', (gltf) => {
     const model = gltf.scene;
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());

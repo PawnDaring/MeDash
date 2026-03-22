@@ -4,7 +4,7 @@
    ════════════════════════════════════════════════════════ */
 (() => {
   const ASSETS = [
-    'assets/models/me.glb',
+    'assets/models/Me.glb',
     'assets/models/brain.glb',
     'assets/icons/brain.png',
     'assets/icons/backpack.png',
