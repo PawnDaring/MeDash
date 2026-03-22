@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>James-Cloud: BETA</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<script src="js/loader.js"></script>
+
+<div class="page-shell">
+
+  <!-- ═══ NAME HEADER ═══ -->
+  <div class="name-header">
+    <button class="name-cycle-btn" id="namePrev" title="Previous name">&#9664;</button>
+    <div class="name-display">
+      <span id="nameText">James</span>
+      <span class="name-sub">AVAILABLE NICK NAMES</span>
+    </div>
+    <button class="name-cycle-btn" id="nameNext" title="Next name">&#9654;</button>
+  </div>
+
+  <!-- ═══ FLEX CONTAINER: [left-stats] [model] [right-stats] ═══ -->
+  <div class="explorer" id="explorer">
+
+    <!-- LEFT STAT PANEL -->
+    <div class="stat-panel" id="panelLeft">
+      <div class="stat-card" id="cardL0"></div>
+      <div class="stat-card" id="cardL1"></div>
+      <div class="stat-card" id="cardL2"></div>
+      <div class="stat-card" id="cardL3"></div>
+      <div class="stat-card" id="cardL4"></div>
+    </div>
+
+    <!-- MODEL AREA (always present, flex:1) -->
+    <div class="model-area" id="modelArea">
+      <div class="model-canvas-wrap" id="modelCanvasWrap">
+        <canvas id="model-canvas"></canvas>
+      </div>
+
+      <div class="body-buttons" id="bodyButtons"></div>
+      <div class="region-label" id="regionLabel">
+        <div class="rl-title" id="rlTitle"></div>
+        <div class="rl-sub" id="rlSub"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT STAT PANEL -->
+    <div class="stat-panel" id="panelRight">
+      <div class="stat-card" id="cardR0"></div>
+      <div class="stat-card" id="cardR1"></div>
+      <div class="stat-card" id="cardR2"></div>
+      <div class="stat-card" id="cardR3"></div>
+      <div class="stat-card" id="cardR4"></div>
+    </div>
+
+  </div>
+
+  <!-- ═══ MIND-STREAM FEED ═══ -->
+  <div class="mind-feed">
+    <div class="mind-feed-header">
+      <div class="feed-dot"></div>
+      <span class="feed-label">Mind Stream</span>
+      <span class="mind-hr" id="mindHR"><span class="hr-icon">♥</span> <span id="hrVal">68</span> bpm</span>
+    </div>
+    <div class="mind-feed-body" id="mindFeed">
+      <span class="m-cursor"></span>
+    </div>
+  </div>
+
+</div><!-- /page-shell -->
+
+<!-- ═══ LIBRARIES ═══ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- ═══ APP COMPONENTS ═══ -->
+<script src="js/regions.js"></script>
+<script src="js/panels.js"></script>
+<script src="js/model.js"></script>
+<script src="js/header.js"></script>
+<script src="js/mindstream.js"></script>
+
+</body>
+</html>

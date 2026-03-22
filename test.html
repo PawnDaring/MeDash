@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test — All Cards Overview</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    html, body {
+      height: auto; overflow: auto;
+      background: var(--bg); color: var(--text);
+    }
+    .test-header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 10px 20px; display: flex; align-items: center; gap: 12px;
+      backdrop-filter: blur(12px);
+    }
+    .test-header h1 {
+      font-size: 14px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--accent); margin: 0;
+    }
+    .test-header .test-sub {
+      font-size: 10px; color: var(--text-dim);
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      padding: 14px;
+      width: 100%; box-sizing: border-box;
+    }
+    .test-region {
+      display: flex; flex-direction: column; gap: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px;
+    }
+    .test-region-header {
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--sun1);
+      padding: 6px 8px;
+      background: var(--card-alt); border: 1px solid var(--border);
+      border-radius: 8px; text-align: center;
+    }
+    .test-region-header .trh-sub {
+      display: block; font-size: 9px; font-weight: 500;
+      color: var(--text-dim); letter-spacing: .5px; margin-top: 2px;
+    }
+    .test-region-header .trh-icon img {
+      width: 18px; height: 18px; vertical-align: middle; margin-right: 4px;
+      filter: invert(38%) sepia(50%) saturate(500%) hue-rotate(345deg) brightness(88%) contrast(90%);
+    }
+    .test-scenes {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    }
+    .test-scene {
+      display: flex; flex-direction: column; gap: 6px;
+      background: rgba(26,22,18,.5); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px;
+    }
+    .test-scene-label {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--sun2);
+      padding: 4px 6px;
+      border-left: 2px solid var(--sun1);
+    }
+    .test-scene-label span {
+      display: block; font-size: 8px; font-weight: 400;
+      color: var(--text-dim); font-style: italic; margin-top: 2px;
+      white-space: normal; line-height: 1.4;
+    }
+    .test-scene .stat-card {
+      opacity: 1; transform: none;
+      min-height: 110px; position: relative;
+    }
+    .test-scene .stat-card .chart-wrap {
+      min-height: 90px;
+    }
+    .test-scene .stat-card .map-wrap {
+      min-height: 110px;
+    }
+    .test-scene .stat-card .img-wrap {
+      min-height: 70px;
+    }
+    .test-scene .stat-card .model-wrap {
+      min-height: 80px;
+    }
+    .test-scene .stat-card .cg-wrap {
+      min-height: 90px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="test-header">
+  <h1>All Cards Overview</h1>
+  <span class="test-sub">6 regions &times; 3 scenes &mdash; dev reference</span>
+</div>
+<div class="test-grid" id="grid"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/regions.js"></script>
+<script>
+(() => {
+  const CORAL = '#c94e44', SALMON = '#b5736b', PEACH = '#c1ab85',
+        ROSE = '#8b5e5a', BLUSH = '#c97b70', DIM = '#2a2520',
+        GRID_C = 'rgba(193,171,133,.06)', CYAN = '#5b8a8a', TEAL = '#3e6868';
+  const FONT = { color:'#7a6e60', font:{ family:"'Segoe UI', sans-serif", size:8 } };
+  const darkTiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+  Chart.defaults.color = '#7a6e60';
+  Chart.defaults.font.family = "'Segoe UI', sans-serif";
+  Chart.defaults.font.size = 8;
+
+  function grad(ctx, c1, c2){
+    const g = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
+    g.addColorStop(0,c1); g.addColorStop(1,c2); return g;
+  }
+
+  function renderCard(cardEl, cardData){
+    cardEl.innerHTML = '';
+    const title = document.createElement('div');
+    title.className = 'card-title';
+    title.textContent = cardData.title;
+    cardEl.appendChild(title);
+
+    if(cardData.type === 'stat'){
+      if(cardData.pills && cardData.pills.length){
+        const pr = document.createElement('div');
+        pr.className = 'pill-row';
+        cardData.pills.forEach(p => {
+          const pill = document.createElement('div');
+          pill.className = 'pill';
+          pill.innerHTML = `<div class="val">${p.v}</div><div class="lbl">${p.l}</div>`;
+          pr.appendChild(pill);
+        });
+        cardEl.appendChild(pr);
+      }
+      const bs = document.createElement('div');
+      bs.className = 'big-stat';
+      const bvClass = cardData.bigValClass ? `big-val ${cardData.bigValClass}` : 'big-val';
+      bs.innerHTML = `<div class="${bvClass}">${cardData.bigVal}<span class="unit">${cardData.bigUnit}</span></div>
+        <div class="big-label">${cardData.bigLabel}</div>`;
+      cardEl.appendChild(bs);
+      if(cardData.list && cardData.list.length){
+        const ml = document.createElement('div');
+        ml.className = 'mini-list';
+        cardData.list.forEach(item => {
+          const cell = document.createElement('div');
+          cell.className = 'mini-list-cell';
+          if(typeof item === 'string'){
+            cell.textContent = item;
+          } else {
+            cell.innerHTML = `<span class="ml-val">${item.v}</span><span class="ml-lbl">${item.l}</span>`;
+          }
+          ml.appendChild(cell);
+        });
+        cardEl.appendChild(ml);
+      }
+      if(cardData.scrabble){
+        const TILE_PTS = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+        const sw = document.createElement('div');
+        sw.className = 'scrabble-row';
+        const tiles = document.createElement('div');
+        tiles.className = 'scrabble-tiles';
+        cardData.scrabble.word.split('').forEach(ch => {
+          const t = document.createElement('div');
+          t.className = 'scrabble-tile';
+          t.innerHTML = `<span class="st-letter">${ch}</span><span class="st-pts">${TILE_PTS[ch.toUpperCase()]||0}</span>`;
+          tiles.appendChild(t);
+        });
+        sw.appendChild(tiles);
+        const sc = document.createElement('div');
+        sc.className = 'scrabble-score';
+        sc.innerHTML = `<span class="ss-val">${cardData.scrabble.points}</span><span class="ss-lbl">${cardData.scrabble.label || 'TOP WORD SCORE'}</span>`;
+        sw.appendChild(sc);
+        cardEl.appendChild(sw);
+      }
+      if(cardData.linkUrl){
+        const lb = document.createElement('a');
+        lb.href = cardData.linkUrl; lb.target = '_blank'; lb.rel = 'noopener noreferrer';
+        lb.className = 'card-link-btn';
+        lb.textContent = cardData.linkIcon || '🔗';
+        if(cardData.linkLabel) lb.title = cardData.linkLabel;
+        cardEl.appendChild(lb);
+      }
+      const sb = document.createElement('div');
+      sb.className = 'status-bar';
+      sb.innerHTML = `<div class="fill" style="width:${Math.random()*60+40}%"></div>`;
+      cardEl.appendChild(sb);
+
+    } else if(cardData.type === 'baggage-stat'){
+      const split = document.createElement('div');
+      split.className = 'baggage-split';
+      const left = document.createElement('div');
+      left.className = 'baggage-left';
+      if(cardData.pills && cardData.pills.length){
+        const pr = document.createElement('div');
+        pr.className = 'baggage-pills-row';
+        cardData.pills.forEach(p => {
+          const pill = document.createElement('div');
+          pill.className = 'pill';
+          pill.innerHTML = `<div class="val">${p.v}</div><div class="lbl">${p.l}</div>`;
+          pr.appendChild(pill);
+        });
+        left.appendChild(pr);
+      }
+      const minLabel = document.createElement('div');
+      minLabel.className = 'baggage-minimal';
+      minLabel.innerHTML = `${cardData.bigVal}<span class="bm-sub">${cardData.bigLabel}</span>`;
+      left.appendChild(minLabel);
+      split.appendChild(left);
+      const right = document.createElement('div');
+      right.className = 'baggage-right';
+      if(cardData.linkUrl){
+        right.innerHTML = `<a href="${cardData.linkUrl}" target="_blank" rel="noopener noreferrer" title="${cardData.linkLabel||''}"><img src="assets/icons/backpack.png" alt="backpack"></a>`;
+      } else {
+        right.innerHTML = `<img src="assets/icons/backpack.png" alt="backpack">`;
+      }
+      split.appendChild(right);
+      cardEl.appendChild(split);
+      const sb2 = document.createElement('div');
+      sb2.className = 'status-bar';
+      sb2.innerHTML = `<div class="fill" style="width:${Math.random()*60+40}%"></div>`;
+      cardEl.appendChild(sb2);
+
+    } else if(cardData.type === 'chart'){
+      const wrap = document.createElement('div');
+      wrap.className = 'chart-wrap';
+      const cvs = document.createElement('canvas');
+      wrap.appendChild(cvs);
+      cardEl.appendChild(wrap);
+      const sb = document.createElement('div');
+      sb.className = 'status-bar';
+      sb.innerHTML = `<div class="fill" style="width:${Math.random()*60+40}%"></div>`;
+      cardEl.appendChild(sb);
+
+      setTimeout(() => {
+        const ctx = cvs.getContext('2d');
+        let cfg;
+        if(cardData.chartType === 'line'){
+          cfg = {
+            type:'line',
+            data:{ labels: cardData.labels,
+              datasets:[{ data: cardData.data,
+                borderColor: cardData.color, borderWidth:1.5,
+                backgroundColor: cardData.fill ? grad(ctx, cardData.color+'33', cardData.color+'00') : 'transparent',
+                fill: !!cardData.fill, tension:.4, pointRadius:2, pointHitRadius:8,
+                pointBackgroundColor: cardData.color
+              }]
+            },
+            options:{ responsive:true, maintainAspectRatio:false,
+              scales:{ x:{grid:{color:GRID_C},ticks:{...FONT}}, y:{grid:{color:GRID_C},ticks:{...FONT}} },
+              plugins:{legend:{display:false}}
+            }
+          };
+        } else if(cardData.chartType === 'bar'){
+          cfg = {
+            type:'bar',
+            data:{ labels: cardData.labels,
+              datasets:[{ data: cardData.data,
+                backgroundColor: grad(ctx, cardData.color, cardData.color+'88'),
+                borderRadius:4, borderSkipped:false
+              }]
+            },
+            options:{ responsive:true, maintainAspectRatio:false,
+              scales:{ x:{grid:{display:false},ticks:FONT}, y:{grid:{color:GRID_C},ticks:{...FONT,maxTicksLimit:5}} },
+              plugins:{legend:{display:false}}
+            }
+          };
+        } else if(cardData.chartType === 'radar'){
+          cfg = {
+            type:'radar',
+            data:{ labels: cardData.labels,
+              datasets:[{ data: cardData.data,
+                borderColor: cardData.color, backgroundColor: cardData.color+'1f',
+                pointBackgroundColor: cardData.color, pointBorderColor:'#1a1612', pointRadius:3
+              }]
+            },
+            options:{ responsive:true, maintainAspectRatio:false,
+              scales:{ r:{grid:{color:GRID_C},ticks:{display:false},pointLabels:FONT,suggestedMin:0,suggestedMax:100} },
+              plugins:{legend:{display:false}}
+            }
+          };
+        } else if(cardData.chartType === 'doughnut'){
+          cfg = {
+            type:'doughnut',
+            data:{ labels: cardData.labels,
+              datasets:[{ data: cardData.data,
+                backgroundColor: cardData.colors || [CORAL,SALMON,PEACH,ROSE,BLUSH,DIM],
+                borderColor:'#211d18', borderWidth:2, borderRadius:3
+              }]
+            },
+            options:{ responsive:true, maintainAspectRatio:false,
+              cutout:'42%',
+              plugins:{ legend:{position:'bottom',labels:{boxWidth:6,padding:3,...FONT}}, tooltip:{bodyFont:{size:9}} }
+            }
+          };
+        } else if(cardData.chartType === 'polarArea'){
+          cfg = {
+            type:'polarArea',
+            data:{ labels: cardData.labels,
+              datasets:[{ data: cardData.data,
+                backgroundColor: cardData.colors || [CORAL,SALMON,PEACH,ROSE,BLUSH,DIM],
+                borderColor:'#211d18', borderWidth:2
+              }]
+            },
+            options:{ responsive:true, maintainAspectRatio:false,
+              scales:{ r:{ grid:{ color:GRID_C }, ticks:{ display:false } } },
+              plugins:{ legend:{ position:'bottom', labels:{ boxWidth:6, padding:3, ...FONT } }, tooltip:{ bodyFont:{ size:9 } } }
+            }
+          };
+        }
+        if(cfg){
+          if(cardData.centerIcon){
+            const img = new Image();
+            img.src = cardData.centerIcon;
+            cfg.plugins = [{
+              id:'centerIcon',
+              afterDraw(chart){
+                if(!img.complete) return;
+                const {ctx:c, chartArea:{left,right,top,bottom}} = chart;
+                const cx = (left+right)/2, cy = (top+bottom)/2;
+                const size = Math.min(right-left, bottom-top) * 0.28;
+                c.save();
+                c.filter = 'invert(38%) sepia(50%) saturate(500%) hue-rotate(345deg) brightness(88%) contrast(90%)';
+                c.globalAlpha = 0.85;
+                c.drawImage(img, cx-size/2, cy-size/2, size, size);
+                c.restore();
+              }
+            }];
+          }
+          new Chart(ctx, cfg);
+        }
+      }, 300);
+
+    } else if(cardData.type === 'brain-wave'){
+      const wrap = document.createElement('div');
+      wrap.className = 'chart-wrap brain-wave-wrap';
+      const cvs = document.createElement('canvas');
+      wrap.appendChild(cvs);
+      cardEl.appendChild(wrap);
+      const sleepStart = cardData.sleepStart ?? 22;
+      const sleepEnd = cardData.sleepEnd ?? 6;
+      const days = cardData.days || ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      const numDays = days.length;
+      const WAVE = '#c94e44'; const SLEEP = '#2a2520'; const GRID = 'rgba(193,171,133,.08)';
+      const SEED = [0.3, 0.7, 0.5, 0.9, 0.4, 0.6, 0.8];
+      function draw(){
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = wrap.getBoundingClientRect();
+        const w = Math.floor(Math.min(Math.max(rect.width, 1), 400));
+        const h = Math.floor(Math.min(Math.max(rect.height, 1), 180));
+        if(cvs.width !== w * dpr || cvs.height !== h * dpr){
+          cvs.width = w * dpr; cvs.height = h * dpr;
+        }
+        const ctx = cvs.getContext('2d');
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+        const rw = w, rh = h;
+        const padL = 28, padR = 6, padT = 6, padB = 18;
+        const chartW = rw - padL - padR, chartH = rh - padT - padB;
+        const rowH = chartH / numDays;
+        ctx.fillStyle = 'transparent';
+        ctx.fillRect(0, 0, rw, rh);
+        for(let d = 0; d < numDays; d++){
+          const y0 = padT + d * rowH, y1 = y0 + rowH - 2, midY = (y0 + y1) / 2;
+          const amp = (y1 - y0) * 0.35 * (0.6 + SEED[d] * 0.4);
+          for(let hr = 0; hr < 24; hr++){
+            const x0 = padL + (hr / 24) * chartW, x1 = padL + ((hr + 1) / 24) * chartW;
+            if(hr >= sleepStart || hr < sleepEnd){
+              ctx.fillStyle = SLEEP;
+              ctx.fillRect(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+            }
+          }
+          const aw1 = sleepEnd / 24, aw2 = sleepStart / 24;
+          const x0 = padL + aw1 * chartW, x1 = padL + aw2 * chartW;
+          const pts = 120;
+          ctx.fillStyle = WAVE;
+          ctx.globalAlpha = 0.35 + SEED[d] * 0.25;
+          ctx.beginPath();
+          ctx.moveTo(x0, midY);
+          for(let i = 1; i <= pts; i++){
+            const t = i / pts, x = x0 + t * (x1 - x0);
+            const wave = Math.sin(i * 0.4 + d * 2.1) * 0.4 + Math.sin(i * 0.9 + d * 1.3) * 0.3 + Math.sin(i * 0.15) * 0.3;
+            ctx.lineTo(x, midY - wave * amp);
+          }
+          ctx.lineTo(x1, midY);
+          ctx.closePath();
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = WAVE;
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 0.7;
+          ctx.beginPath();
+          ctx.moveTo(x0, midY);
+          for(let i = 1; i <= pts; i++){
+            const t = i / pts, x = x0 + t * (x1 - x0);
+            const wave = Math.sin(i * 0.4 + d * 2.1) * 0.4 + Math.sin(i * 0.9 + d * 1.3) * 0.3 + Math.sin(i * 0.15) * 0.3;
+            ctx.lineTo(x, midY - wave * amp);
+          }
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = '#7a6e60';
+          ctx.font = '9px "Segoe UI",sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText(days[d] ?? '', padL - 6, midY + 3);
+        }
+        ctx.strokeStyle = GRID;
+        ctx.lineWidth = 0.5;
+        [6, 12, 18, 22].forEach(hr => {
+          const x = padL + (hr / 24) * chartW;
+          ctx.beginPath();
+          ctx.moveTo(x, padT);
+          ctx.lineTo(x, padT + chartH);
+          ctx.stroke();
+        });
+        ctx.fillStyle = '#7a6e60';
+        ctx.font = '8px "Segoe UI",sans-serif';
+        ctx.textAlign = 'center';
+        [6, 12, 18, 22].forEach(hr => {
+          const x = padL + (hr / 24) * chartW;
+          const lbl = hr === 12 ? '12p' : hr < 12 ? hr + 'a' : (hr - 12) + 'p';
+          ctx.fillText(lbl, x, rh - 4);
+        });
+      }
+      setTimeout(() => {
+        draw();
+        new ResizeObserver(() => draw()).observe(wrap);
+      }, 150);
+
+    } else if(cardData.type === 'map'){
+      const wrap = document.createElement('div');
+      wrap.className = 'map-wrap';
+      if(cardData.markers) wrap.classList.add('map-wrap-square');
+      const mapDiv = document.createElement('div');
+      mapDiv.style.cssText = 'width:100%;height:100%;min-height:120px;';
+      wrap.appendChild(mapDiv);
+      cardEl.appendChild(wrap);
+
+      setTimeout(() => {
+        const map = L.map(mapDiv, {
+          center: cardData.center, zoom: cardData.zoom,
+          zoomControl: false, attributionControl: false
+        });
+        L.tileLayer(darkTiles, { maxZoom:19 }).addTo(map);
+        if(cardData.markers && cardData.markers.length){
+          const pinIcon = L.divIcon({
+            className:'',
+            html:`<div style="width:8px;height:8px;border-radius:50%;background:#c94e44;box-shadow:0 0 6px rgba(201,78,68,.5);border:1px solid rgba(193,171,133,.3)"></div>`,
+            iconSize:[8,8], iconAnchor:[4,4]
+          });
+          const bounds = [];
+          cardData.markers.forEach(m => {
+            const ll = m.coords; bounds.push(ll);
+            const marker = L.marker(ll, { icon: pinIcon }).addTo(map);
+            marker.bindTooltip(m.place, { permanent:false, direction:'top', className:'map-tooltip', offset:[0,-6] });
+          });
+          if(bounds.length > 1) map.fitBounds(bounds, { padding:[15,15] });
+        } else {
+          const icon = L.divIcon({
+            className:'',
+            html:`<div style="width:10px;height:10px;border-radius:50%;background:#d4c5b0;box-shadow:0 0 6px rgba(193,171,133,.4)"></div>`,
+            iconSize:[10,10], iconAnchor:[5,5]
+          });
+          L.marker(cardData.center, { icon }).addTo(map);
+        }
+        setTimeout(() => map.invalidateSize(), 400);
+      }, 400);
+
+    } else if(cardData.type === 'image'){
+      const wrap = document.createElement('div');
+      wrap.className = 'img-wrap';
+      const img = document.createElement('img');
+      img.src = cardData.src || '';
+      img.alt = cardData.alt || cardData.title || '';
+      img.loading = 'lazy';
+      if(cardData.url){
+        const a = document.createElement('a');
+        a.href = cardData.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.appendChild(img); wrap.appendChild(a);
+      } else {
+        wrap.appendChild(img);
+      }
+      if(cardData.caption){
+        const cap = document.createElement('div');
+        cap.className = 'img-caption';
+        cap.textContent = cardData.caption;
+        wrap.appendChild(cap);
+      }
+      cardEl.appendChild(wrap);
+
+    } else if(cardData.type === 'rotating-model'){
+      const wrap = document.createElement('div');
+      wrap.className = 'model-wrap';
+      const cvs = document.createElement('canvas');
+      wrap.appendChild(cvs);
+      if(cardData.caption){
+        const cap = document.createElement('div');
+        cap.className = 'img-caption';
+        cap.textContent = cardData.caption;
+        wrap.appendChild(cap);
+      }
+      cardEl.appendChild(wrap);
+      setTimeout(() => {
+        if(!window.THREE) return;
+        const THREE = window.THREE;
+        const w = Math.max(wrap.clientWidth || 120, 80), h = Math.max(wrap.clientHeight || 120, 80);
+        const renderer = new THREE.WebGLRenderer({ canvas: cvs, antialias: true, alpha: true });
+        renderer.setSize(w, h);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x000000, 0);
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
+        camera.position.set(0, 0, 2.2);
+        camera.lookAt(0, 0, 0);
+        const group = new THREE.Group();
+        const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const mat = new THREE.MeshPhongMaterial({ color: 0xb5736b, transparent: true, opacity: 0.9 });
+        const cube = new THREE.Mesh(geo, mat);
+        group.add(cube);
+        scene.add(new THREE.AmbientLight(0x666666));
+        scene.add(new THREE.DirectionalLight(0xffffff, 0.8).position.set(2, 2, 2));
+        scene.add(group);
+        let pulseDots = [];
+        const clock = { t: 0 };
+        function loop(){
+          requestAnimationFrame(loop);
+          clock.t = performance.now() * 0.001;
+          group.rotation.y += 0.012;
+          pulseDots.forEach((dot, i) => {
+            const phase = i * 0.4;
+            const s = 0.85 + 0.3 * Math.sin(clock.t * 2.5 + phase);
+            dot.scale.setScalar(s);
+          });
+          renderer.render(scene, camera);
+        }
+        loop();
+        if(cardData.model && THREE.GLTFLoader){
+          const PALETTE = [0xb5736b, 0x3e6868, 0xc94e44, 0xc1ab85, 0x8b5e5a, 0x5a7a7a, 0xe8a0b0, 0x7a6e60, 0xc97b70, 0x6b8a8a];
+          function randomColor(){ return PALETTE[Math.floor(Math.random() * PALETTE.length)]; }
+          new THREE.GLTFLoader().load(cardData.model, (gltf) => {
+            group.remove(cube);
+            const m = gltf.scene;
+            const box = new THREE.Box3().setFromObject(m);
+            const size = box.getSize(new THREE.Vector3());
+            const s = 1 / Math.max(size.x, size.y, size.z);
+            m.scale.setScalar(s);
+            m.traverse(c => {
+              if(c.isMesh){
+                const col = randomColor();
+                c.material = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity: 0.9 });
+                c.renderOrder = 0;
+              }
+            });
+            group.add(m);
+            const wireMat = new THREE.MeshBasicMaterial({
+              wireframe: true, transparent: true,
+              color: 0xb5736b, opacity: 0.05
+            });
+            const wireClone = m.clone(true);
+            wireClone.traverse(c => { if(c.isMesh){ c.material = wireMat; c.renderOrder = 1; } });
+            group.add(wireClone);
+
+            const box2 = new THREE.Box3().setFromObject(m);
+            const center = box2.getCenter(new THREE.Vector3());
+            const size2 = box2.getSize(new THREE.Vector3());
+            const r = Math.max(size2.x, size2.y, size2.z) * 0.45;
+            const dotGeo = new THREE.SphereGeometry(0.025, 8, 8);
+            const dotColors = [0xe8a0b0, 0xf73757, 0xc94e44, 0xc1ab85, 0xb5736b];
+            for(let i = 0; i < 5; i++){
+              const phi = Math.acos(2 * Math.random() - 1);
+              const theta = Math.random() * Math.PI * 2;
+              const dist = r * (0.5 + Math.random() * 0.5);
+              const dot = new THREE.Mesh(dotGeo.clone(), new THREE.MeshBasicMaterial({
+                color: dotColors[i], transparent: true, opacity: 0.9
+              }));
+              dot.position.set(
+                center.x + dist * Math.sin(phi) * Math.cos(theta),
+                center.y + dist * Math.cos(phi),
+                center.z + dist * Math.sin(phi) * Math.sin(theta)
+              );
+              dot.renderOrder = 2;
+              group.add(dot);
+              pulseDots.push(dot);
+            }
+          });
+        }
+      }, 150);
+    } else if(cardData.type === 'git-graph'){
+      const wrap = document.createElement('div');
+      wrap.className = 'gg-wrap';
+      const lanes = cardData.lanes || ['#3e6868'];
+      const entries = cardData.entries || [];
+      const active = new Set();
+      const CELL_W = 14, DOT_R = 7, HEAD_R = 9;
+
+      entries.forEach(entry => {
+        active.add(entry.lane);
+        const row = document.createElement('div');
+        row.className = 'gg-row';
+        const laneArea = document.createElement('div');
+        laneArea.className = 'gg-lanes';
+        laneArea.style.width = (lanes.length * CELL_W) + 'px';
+
+        for(let l = 0; l < lanes.length; l++){
+          const cell = document.createElement('div');
+          cell.className = 'gg-cell';
+          if(active.has(l)){
+            const vl = document.createElement('div');
+            vl.className = 'gg-vline';
+            vl.style.background = lanes[l];
+            cell.appendChild(vl);
+          }
+          if(l === entry.lane){
+            const isHead = entry.tag === 'HEAD';
+            const dot = document.createElement('div');
+            dot.className = 'gg-dot' + (isHead ? ' gg-head' : '');
+            dot.style.background = lanes[l];
+            dot.style.boxShadow = '0 0 5px ' + lanes[l];
+            const sz = isHead ? HEAD_R : DOT_R;
+            dot.style.width = sz + 'px';
+            dot.style.height = sz + 'px';
+            cell.appendChild(dot);
+          }
+          laneArea.appendChild(cell);
+        }
+        if(entry.fork !== undefined){
+          const from = entry.lane, to = entry.fork;
+          const x1 = from * CELL_W + CELL_W / 2, x2 = to * CELL_W + CELL_W / 2;
+          const conn = document.createElement('div');
+          conn.className = 'gg-conn';
+          conn.style.left = Math.min(x1, x2) + 'px';
+          conn.style.width = Math.abs(x2 - x1) + 'px';
+          conn.style.background = lanes[to];
+          laneArea.appendChild(conn);
+        }
+        if(entry.merge !== undefined){
+          const from = entry.merge, to = entry.lane;
+          const x1 = from * CELL_W + CELL_W / 2, x2 = to * CELL_W + CELL_W / 2;
+          const conn = document.createElement('div');
+          conn.className = 'gg-conn';
+          conn.style.left = Math.min(x1, x2) + 'px';
+          conn.style.width = Math.abs(x2 - x1) + 'px';
+          conn.style.background = lanes[from];
+          laneArea.appendChild(conn);
+        }
+        row.appendChild(laneArea);
+        const msg = document.createElement('div');
+        msg.className = 'gg-msg';
+        let html = entry.msg;
+        if(entry.tag){
+          const tc = entry.tag === 'HEAD' ? 'gg-tag gg-tag-head' : 'gg-tag';
+          html += ` <span class="${tc}">${entry.tag}</span>`;
+        }
+        msg.innerHTML = html;
+        row.appendChild(msg);
+        wrap.appendChild(row);
+        if(entry.merge !== undefined) active.delete(entry.merge);
+      });
+      cardEl.appendChild(wrap);
+
+    } else if(cardData.type === 'contribution-grid'){
+      const total = cardData.squares || 80;
+      const teal = cardData.teal ?? Math.round(total * 0.6);
+      const pink = cardData.pink ?? Math.round(total * 0.3);
+      const black = cardData.black ?? 2;
+      const cells = [];
+      for(let i = 0; i < pink; i++) cells.push('pink');
+      for(let i = 0; i < black; i++) cells.push('black');
+      while(cells.length < total) cells.push('teal');
+      for(let i = cells.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [cells[i], cells[j]] = [cells[j], cells[i]];
+      }
+      const wrap = document.createElement('div');
+      wrap.className = 'cg-wrap';
+      const grid = document.createElement('div');
+      grid.className = 'cg-grid';
+      cells.forEach(c => {
+        const sq = document.createElement('div');
+        sq.className = 'cg-cell cg-' + c;
+        grid.appendChild(sq);
+      });
+      wrap.appendChild(grid);
+      if(cardData.caption){
+        const cap = document.createElement('div');
+        cap.className = 'cg-caption';
+        cap.textContent = cardData.caption;
+        wrap.appendChild(cap);
+      }
+      cardEl.appendChild(wrap);
+
+    } else if(cardData.type === 'projects'){
+      cardEl.classList.add('projects-card');
+      const list = document.createElement('div');
+      list.style.cssText = 'display:flex;flex-direction:column;';
+      (cardData.items || []).forEach(item => {
+        const hasLink = item.url && item.url !== '#';
+        const row = document.createElement(hasLink ? 'a' : 'div');
+        row.className = 'project-item' + (hasLink ? '' : ' no-link');
+        if(hasLink){ row.href = item.url; row.target = '_blank'; row.rel = 'noopener noreferrer'; }
+        let html = `<span class="proj-name">${item.name}</span>`;
+        html += `<span class="proj-desc">${item.desc}</span>`;
+        if(hasLink) html += `<span class="proj-arrow">↗ Open App</span>`;
+        row.innerHTML = html;
+        list.appendChild(row);
+      });
+      cardEl.appendChild(list);
+
+    } else if(cardData.type === 'spotify-list'){
+      cardEl.classList.add('projects-card', 'spotify-list-card');
+      const list = document.createElement('div');
+      list.style.cssText = 'display:flex;flex-direction:column;';
+      (cardData.items || []).forEach(item => {
+        const hasLink = item.url && item.url !== '#';
+        const row = document.createElement(hasLink ? 'a' : 'div');
+        row.className = 'project-item' + (hasLink ? '' : ' no-link');
+        if(hasLink){ row.href = item.url; row.target = '_blank'; row.rel = 'noopener noreferrer'; }
+        let html = `<span class="proj-name">${item.name}</span>`;
+        html += `<span class="proj-desc">${item.desc}</span>`;
+        if(hasLink) html += `<span class="proj-arrow">↗ Play</span>`;
+        row.innerHTML = html;
+        list.appendChild(row);
+      });
+      cardEl.appendChild(list);
+    }
+  }
+
+  /* ── Build the grid ── */
+  const grid = document.getElementById('grid');
+
+  REGIONS.forEach(region => {
+    const block = document.createElement('div');
+    block.className = 'test-region';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'test-region-header';
+    hdr.innerHTML = `<span class="trh-icon">${region.icon}</span> ${region.label}<span class="trh-sub">${region.subtitle}</span>`;
+    block.appendChild(hdr);
+
+    const scenesRow = document.createElement('div');
+    scenesRow.className = 'test-scenes';
+
+    region.scenes.forEach((scene, si) => {
+      const section = document.createElement('div');
+      section.className = 'test-scene';
+
+      const lbl = document.createElement('div');
+      lbl.className = 'test-scene-label';
+      lbl.innerHTML = `Scene ${scene.label}: ${scene.header}<span>${scene.commentary}</span>`;
+      section.appendChild(lbl);
+
+      scene.cards.forEach(cardData => {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        renderCard(card, cardData);
+        section.appendChild(card);
+      });
+
+      scenesRow.appendChild(section);
+    });
+
+    block.appendChild(scenesRow);
+    grid.appendChild(block);
+  });
+})();
+</script>
+
+</body>
+</html>
