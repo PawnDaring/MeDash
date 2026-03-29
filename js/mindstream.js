@@ -48,7 +48,7 @@
     { tag:'LOOP',   msg:'Thought recursion depth: 12 — stack overflow imminent', hr:132 },
     { tag:'SELF',   msg:'what if I just… stop talking', whisper:true, hr:130 },
     { tag:'SPIRAL', msg:'Breathe', flash:true, hr:125 },
-    { tag:'BLANK',  msg:'█████████████ — white Noise Activated— ████████████', flash:true, hr:128 },
+    { tag:'BLANK',  msg:'████ — white Noise Activated— ████', flash:true, hr:128 },
     { tag:'SELF',   msg:'Clearing Distraction Cache', whisper:true, hr:125},
 
     /* ── ACT 4: THE PAUSE — grounding (HR 122-100) ── */

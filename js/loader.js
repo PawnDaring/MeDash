@@ -8,6 +8,8 @@
     'assets/models/brain.glb',
     'assets/icons/brain.png',
     'assets/icons/backpack.png',
+    'assets/icons/mine.svg',
+    'assets/icons/word-play-invite.svg',
     'assets/icons/palm.png',
     'assets/icons/heart-rate.png',
     'assets/icons/poop.png',

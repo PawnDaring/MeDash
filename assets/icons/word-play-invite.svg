@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 152 34" fill="none">
+  <defs>
+    <linearGradient id="tile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4c5a8"/>
+      <stop offset="100%" style="stop-color:#bba880"/>
+    </linearGradient>
+  </defs>
+  <g font-family="Georgia,serif" font-weight="800" font-size="15" fill="#2a1a00">
+    <rect x="2" y="2" width="30" height="30" rx="4" fill="url(#tile)" stroke="#a89468" stroke-width="1"/>
+    <text x="17" y="22" text-anchor="middle">P</text>
+    <rect x="36" y="2" width="30" height="30" rx="4" fill="url(#tile)" stroke="#a89468" stroke-width="1"/>
+    <text x="51" y="22" text-anchor="middle">L</text>
+    <rect x="70" y="2" width="30" height="30" rx="4" fill="url(#tile)" stroke="#a89468" stroke-width="1"/>
+    <text x="85" y="22" text-anchor="middle">A</text>
+    <rect x="104" y="2" width="30" height="30" rx="4" fill="url(#tile)" stroke="#a89468" stroke-width="1"/>
+    <text x="119" y="22" text-anchor="middle">Y</text>
+  </g>
+  <text x="76" y="33" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="7" font-weight="600" fill="#7a6e60" letter-spacing="1">invite</text>
+</svg>

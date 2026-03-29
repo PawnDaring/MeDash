@@ -24,7 +24,7 @@ REGIONS.forEach((r, ri) => {
 (() => {
   const CORAL = '#c94e44', SALMON = '#b5736b', PEACH = '#c1ab85',
         ROSE = '#8b5e5a', BLUSH = '#c97b70', DIM = '#2a2520',
-        GRID = 'rgba(193,171,133,.06)', CYAN = '#5b8a8a', TEAL = '#3e6868';
+        GRID = 'rgba(255, 76, 151, 0.06)', CYAN = '#5b8a8a', TEAL = '#3e6868';
   const FONT = { color:'#7a6e60', font:{ family:"'Segoe UI', sans-serif", size:8 } };
   const darkTiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
@@ -136,16 +136,37 @@ REGIONS.forEach((r, ri) => {
         sw.appendChild(sc);
         cardEl.appendChild(sw);
       }
-      /* link button */
+      /* link: image invite or round icon button */
       if(cardData.linkUrl){
-        const lb = document.createElement('a');
-        lb.href = cardData.linkUrl;
-        lb.target = '_blank';
-        lb.rel = 'noopener noreferrer';
-        lb.className = 'card-link-btn';
-        lb.textContent = cardData.linkIcon || '🔗';
-        if(cardData.linkLabel) lb.title = cardData.linkLabel;
-        cardEl.appendChild(lb);
+        if(cardData.linkImg){
+          const il = document.createElement('a');
+          il.href = cardData.linkUrl;
+          il.target = '_blank';
+          il.rel = 'noopener noreferrer';
+          il.className = 'card-link-img-wrap';
+          if(cardData.linkLabel) il.title = cardData.linkLabel;
+          const im = document.createElement('img');
+          im.src = cardData.linkImg;
+          im.alt = cardData.linkAlt || cardData.linkLabel || 'Open link';
+          im.draggable = false;
+          il.appendChild(im);
+          if(cardData.linkCaption){
+            const cap = document.createElement('div');
+            cap.className = 'card-link-caption';
+            cap.textContent = cardData.linkCaption;
+            il.appendChild(cap);
+          }
+          cardEl.appendChild(il);
+        } else {
+          const lb = document.createElement('a');
+          lb.href = cardData.linkUrl;
+          lb.target = '_blank';
+          lb.rel = 'noopener noreferrer';
+          lb.className = 'card-link-btn';
+          lb.textContent = cardData.linkIcon || '🔗';
+          if(cardData.linkLabel) lb.title = cardData.linkLabel;
+          cardEl.appendChild(lb);
+        }
       }
       /* status bar */
       const sb = document.createElement('div');
@@ -176,10 +197,12 @@ REGIONS.forEach((r, ri) => {
       split.appendChild(left);
       const right = document.createElement('div');
       right.className = 'baggage-right';
+      const sideSrc = cardData.sideIcon || 'assets/icons/backpack.png';
+      const sideAlt = cardData.sideAlt || '';
       if(cardData.linkUrl){
-        right.innerHTML = `<a href="${cardData.linkUrl}" target="_blank" rel="noopener noreferrer" title="${cardData.linkLabel||''}"><img src="assets/icons/backpack.png" alt="backpack"></a>`;
+        right.innerHTML = `<a href="${cardData.linkUrl}" target="_blank" rel="noopener noreferrer" title="${cardData.linkLabel||''}"><img src="${sideSrc}" alt="${sideAlt || 'link'}"></a>`;
       } else {
-        right.innerHTML = `<img src="assets/icons/backpack.png" alt="backpack">`;
+        right.innerHTML = `<img src="${sideSrc}" alt="${sideAlt || ''}">`;
       }
       split.appendChild(right);
       cardEl.appendChild(split);
@@ -190,7 +213,8 @@ REGIONS.forEach((r, ri) => {
 
     } else if(cardData.type === 'chart'){
       const wrap = document.createElement('div');
-      wrap.className = 'chart-wrap';
+      const radial = cardData.chartType === 'doughnut' || cardData.chartType === 'polarArea';
+      wrap.className = 'chart-wrap' + (radial ? ' chart-wrap-donut' : '');
       const cvs = document.createElement('canvas');
       wrap.appendChild(cvs);
       cardEl.appendChild(wrap);
@@ -216,6 +240,61 @@ REGIONS.forEach((r, ri) => {
             options:{ responsive:true, maintainAspectRatio:false,
               scales:{ x:{grid:{color:GRID},ticks:{...FONT}}, y:{grid:{color:GRID},ticks:{...FONT}} },
               plugins:{legend:{display:false}}
+            }
+          };
+        } else if(cardData.chartType === 'engagement-day'){
+          const labels = cardData.labels || ['6a','7a','8a','9a','10a','11a','12p','1p','2p','3p','4p','5p','6p','7p','8p','9p','10p'];
+          const data = cardData.data || [12, 28, 48, 65, 76, 84, 88, 90, 91, 90, 87, 78, 58, 42, 28, 18, 12];
+          function engagementBorderGradient(chart){
+            const {ctx: c, chartArea} = chart;
+            if(!chartArea) return '#c94e44';
+            const g = c.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+            g.addColorStop(0, '#c94e44');
+            g.addColorStop(0.26, '#d9885c');
+            g.addColorStop(0.46, '#c1ab85');
+            g.addColorStop(0.58, '#9eb896');
+            g.addColorStop(0.78, '#7bc48a');
+            g.addColorStop(1, '#4a8f62');
+            return g;
+          }
+          function engagementFillGradient(chart){
+            const {ctx: c, chartArea} = chart;
+            if(!chartArea) return 'rgba(201,78,68,0.2)';
+            const g = c.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+            g.addColorStop(0, 'rgba(201,78,68,0.32)');
+            g.addColorStop(0.44, 'rgba(193,171,133,0.14)');
+            g.addColorStop(1, 'rgba(139,229,167,0.26)');
+            return g;
+          }
+          cfg = {
+            type:'line',
+            data:{
+              labels,
+              datasets:[{
+                data,
+                borderWidth:2,
+                tension:0.42,
+                fill:true,
+                pointRadius:0,
+                pointHoverRadius:5,
+                pointBackgroundColor:'#c1ab85',
+                pointBorderColor:'#1a1612',
+                borderColor:(c) => engagementBorderGradient(c.chart),
+                backgroundColor:(c) => engagementFillGradient(c.chart)
+              }]
+            },
+            options:{
+              responsive:true, maintainAspectRatio:false,
+              scales:{
+                x:{ grid:{color:GRID}, ticks:{...FONT, maxRotation:0, autoSkip:true, maxTicksLimit:9} },
+                y:{
+                  grid:{color:GRID},
+                  ticks:{...FONT, maxTicksLimit:5},
+                  suggestedMin:0,
+                  suggestedMax:100
+                }
+              },
+              plugins:{ legend:{display:false}, tooltip:{intersect:false} }
             }
           };
         } else if(cardData.chartType === 'bar'){
@@ -315,7 +394,9 @@ REGIONS.forEach((r, ri) => {
       const sleepEnd = cardData.sleepEnd ?? 6;
       const days = cardData.days || ['Fri','Sat','Sun'];
       const numDays = days.length;
-      const WAVE = '#c94e44'; const SLEEP = '#2a2520'; const GRID = 'rgba(193,171,133,.08)';
+      const WAVE = '#c94e44'; const SLEEP = '#2a2520'; const GRID = 'rgba(255, 162, 0, 0.08)';
+      const waveColors = Array.isArray(cardData.waveColors) ? cardData.waveColors : [];
+      const waveChaos = Array.isArray(cardData.waveChaos) ? cardData.waveChaos : [];
       const SEED = [0.3, 0.7, 0.5, 0.9, 0.4, 0.6, 0.8];
 
       function draw(){
@@ -342,7 +423,11 @@ REGIONS.forEach((r, ri) => {
           const y0 = padT + d * rowH;
           const y1 = y0 + rowH - 2;
           const midY = (y0 + y1) / 2;
-          const amp = (y1 - y0) * 0.35 * (0.6 + SEED[d] * 0.4);
+          const chaosRaw = waveChaos[d];
+          const chaos = typeof chaosRaw === 'number' && Number.isFinite(chaosRaw)
+            ? Math.min(1, Math.max(0, chaosRaw))
+            : 1;
+          const amp = (y1 - y0) * 0.35 * (0.6 + SEED[d] * 0.4) * (0.1 + 0.9 * chaos);
 
           for(let hr = 0; hr < 24; hr++){
             const x0 = padL + (hr / 24) * chartW;
@@ -357,23 +442,28 @@ REGIONS.forEach((r, ri) => {
           const aw1 = sleepEnd / 24, aw2 = sleepStart / 24;
           const x0 = padL + aw1 * chartW, x1 = padL + aw2 * chartW;
           const pts = 120;
-          ctx.fillStyle = WAVE;
+          const waveColor = waveColors[d] || WAVE;
+          function waveUnit(i){
+            const t = i / pts;
+            const wild = Math.sin(i * 0.4 + d * 2.1) * 0.4 + Math.sin(i * 0.9 + d * 1.3) * 0.3 + Math.sin(i * 0.15) * 0.3;
+            const calm = Math.sin(t * Math.PI * 1.25 + d * 0.9) * 0.07;
+            return wild * chaos + calm * (1 - chaos);
+          }
+          ctx.fillStyle = waveColor;
           ctx.globalAlpha = 0.35 + SEED[d] * 0.25;
           ctx.beginPath();
           ctx.moveTo(x0, midY);
           for(let i = 1; i <= pts; i++){
             const t = i / pts;
             const x = x0 + t * (x1 - x0);
-            const wave = Math.sin(i * 0.4 + d * 2.1) * 0.4 + Math.sin(i * 0.9 + d * 1.3) * 0.3 + Math.sin(i * 0.15) * 0.3;
-            const y = midY - wave * amp;
-            ctx.lineTo(x, y);
+            ctx.lineTo(x, midY - waveUnit(i) * amp);
           }
           ctx.lineTo(x1, midY);
           ctx.closePath();
           ctx.fill();
           ctx.globalAlpha = 1;
 
-          ctx.strokeStyle = WAVE;
+          ctx.strokeStyle = waveColor;
           ctx.lineWidth = 1;
           ctx.globalAlpha = 0.7;
           ctx.beginPath();
@@ -381,9 +471,7 @@ REGIONS.forEach((r, ri) => {
           for(let i = 1; i <= pts; i++){
             const t = i / pts;
             const x = x0 + t * (x1 - x0);
-            const wave = Math.sin(i * 0.4 + d * 2.1) * 0.4 + Math.sin(i * 0.9 + d * 1.3) * 0.3 + Math.sin(i * 0.15) * 0.3;
-            const y = midY - wave * amp;
-            ctx.lineTo(x, y);
+            ctx.lineTo(x, midY - waveUnit(i) * amp);
           }
           ctx.stroke();
           ctx.globalAlpha = 1;
@@ -527,15 +615,21 @@ REGIONS.forEach((r, ri) => {
 
         let animId;
         let pulseDots = [];
+        let brainMats = [];
+        let wireMats = [];
         const clock = { t: 0 };
         function loop(){
           animId = requestAnimationFrame(loop);
           clock.t = performance.now() * 0.001;
-          group.rotation.z += 0.012;
+          group.rotation.y += 0.012;
+          const fade = 0.55 + 0.2 * Math.sin(clock.t * 1.2);
+          brainMats.forEach(mat => { mat.opacity = fade; });
+          wireMats.forEach(mat => { mat.opacity = 0.03 + 0.04 * Math.sin(clock.t * 1.5); });
           pulseDots.forEach((dot, i) => {
             const phase = i * 0.4;
             const s = 0.85 + 0.3 * Math.sin(clock.t * 2.5 + phase);
             dot.scale.setScalar(s);
+            if(dot.material) dot.material.opacity = 0.6 + 0.35 * Math.sin(clock.t * 1.8 + phase);
           });
           renderer.render(scene, camera);
         }
@@ -560,21 +654,28 @@ REGIONS.forEach((r, ri) => {
               const m = gltf.scene;
               const box = new THREE.Box3().setFromObject(m);
               const size = box.getSize(new THREE.Vector3());
-              const s = 0.8 / Math.max(size.x, size.y, size.z);
+              const s = 1 / Math.max(size.x, size.y, size.z);
               m.scale.setScalar(s);
               m.traverse(c => {
                 if(c.isMesh){
                   const col = randomColor();
-                  c.material = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity: 0.9 });
+                  const mat = new THREE.MeshPhongMaterial({
+                    color: col, transparent: true, opacity: 0.7,
+                    side: THREE.DoubleSide, depthWrite: false
+                  });
+                  c.material = mat;
+                  brainMats.push(mat);
                   c.renderOrder = 0;
                 }
               });
               group.add(m);
 
               const wireMat = new THREE.MeshBasicMaterial({
-                wireframe: true, transparent: true,
-                color: 0xb5736b, opacity: 0.85
+                wireframe: true, transparent: true, depthWrite: false,
+                blending: THREE.AdditiveBlending,
+                color: 0xe8a0b0, opacity: 0.06
               });
+              wireMats.push(wireMat);
               const wireClone = m.clone(true);
               wireClone.traverse(c => { if(c.isMesh){ c.material = wireMat; c.renderOrder = 1; } });
               group.add(wireClone);
@@ -583,14 +684,15 @@ REGIONS.forEach((r, ri) => {
               const center = box2.getCenter(new THREE.Vector3());
               const size2 = box2.getSize(new THREE.Vector3());
               const r = Math.max(size2.x, size2.y, size2.z) * 0.45;
-              const dotGeo = new THREE.SphereGeometry(0.025, 8, 8);
+              const dotGeo = new THREE.SphereGeometry(0.1, 8, 8);
               const dotColors = [0xe8a0b0, 0xf73757, 0xc94e44, 0xc1ab85, 0xb5736b];
               for(let i = 0; i < 5; i++){
                 const phi = Math.acos(2 * Math.random() - 1);
                 const theta = Math.random() * Math.PI * 2;
                 const dist = r * (0.5 + Math.random() * 0.5);
                 const dot = new THREE.Mesh(dotGeo.clone(), new THREE.MeshBasicMaterial({
-                  color: dotColors[i], transparent: true, opacity: 0.9
+                  color: dotColors[i], transparent: true, opacity: 0.8,
+                  depthWrite: false, blending: THREE.AdditiveBlending
                 }));
                 dot.position.set(
                   center.x + dist * Math.sin(phi) * Math.cos(theta),

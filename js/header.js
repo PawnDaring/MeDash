@@ -4,7 +4,7 @@
 (() => {
   const names = [
     'James', 'Jimbo', 'Jamie', 'HAH-mess', 'Seamus',
-    'Jimmy', 'Jimmy-Bob-Thorton', 'Sweet Baby James', 'Dummy', 'Wizard', 'Guru', 'Jimmothy', 'robby',
+    'Jimmy', 'Jimmy-Bob-Thorton', 'Sweet Baby James', 'Dummy', 'Wizard', 'Guru', 'Jimmothy', 'Jameson','robby',
   ];
   let idx = 0;
   const el = document.getElementById('nameText');
