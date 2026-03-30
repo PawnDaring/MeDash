@@ -574,6 +574,28 @@ REGIONS.forEach((r, ri) => {
       }
       cardEl.appendChild(wrap);
 
+    } else if(cardData.type === 'video'){
+      const wrap = document.createElement('div');
+      wrap.className = 'img-wrap img-wrap-video';
+      const vid = document.createElement('video');
+      vid.src = cardData.src || '';
+      vid.setAttribute('playsinline', '');
+      vid.playsInline = true;
+      vid.controls = cardData.controls !== false;
+      vid.loop = cardData.loop !== false;
+      vid.muted = cardData.muted !== false;
+      if(cardData.poster) vid.poster = cardData.poster;
+      vid.preload = cardData.preload || 'metadata';
+      if(cardData.autoplay !== false) vid.autoplay = true;
+      wrap.appendChild(vid);
+      if(cardData.caption){
+        const cap = document.createElement('div');
+        cap.className = 'img-caption';
+        cap.textContent = cardData.caption;
+        wrap.appendChild(cap);
+      }
+      cardEl.appendChild(wrap);
+
     } else if(cardData.type === 'rotating-model'){
       const wrap = document.createElement('div');
       wrap.className = 'model-wrap';

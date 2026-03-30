@@ -17,8 +17,7 @@
 
 JCR C-0.0
 
-HELLO! wanderer of Back Alley Inquiries! I greet you and welcome you to explore my hidden secrets... 
-More discoveries await you here as well: URL
+HELLO! wanderer of Back Alley Inquiries! I greet you and welcome you to explore my hidden secrets...
 
  ███████╗
 █║  █║  █║

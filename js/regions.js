@@ -31,8 +31,8 @@
           { type:'image', title:'Quality Relaxation', src:'assets/images/Sleep.png' },
           { type:'stat', title:'Weekend Review', bigVal:'Well Rested', bigUnit:'', bigLabel:'Relaxation and Turkey Legs',
             pills:[{v:'15%',l:'Events'},{v:'15%',l:'Responsabilities'},{v:'70%',l:'Nothing'}] },
-          { type:'image', title:'Eating Turkey Leg', src:'' },
-          { type:'chart', title:'❤️ Emotional Battery', chartType:'doughnut',
+          { type:'image', title:'R&R @ the Renfair', src:'assets/images/Renfair.png' },
+          { type:'chart', title:'❤️ Social/Emotional Battery', chartType:'doughnut',
             labels:['❤️ Charged','Empty'],
             data:[80,20], colors:['#c1ab85','#221a18'], centerIcon:'assets/icons/heart-rate.png' }        
         ]},
@@ -69,7 +69,7 @@
           { type:'chart', title:'Emotional Load Index', chartType:'line',
           labels:['N','D','J','F','M','A'],
           data:[10,11,15,20,30,25], color:'#c94e44', fill:true },
-          { type:'image', title:'Pursuits Animation TO be Added', src:'' },
+          { type:'video', title:'Pursuits', src:'assets/video/Pursuits.mp4' },
         ]},
         /* ── Scene 2: Strength & Climbing ── */
         { label: '2',
@@ -88,7 +88,7 @@
         ]},
         /* ── Scene 3: Gear & Personality Metrics ── */
         { label: '3',
-          header: 'Neuroplasticity',
+          header: 'After Hours',
           commentary: 'Emotional Baggage: Managed',
           cards: [
           { type:'stat', title:'Lexical Dexterity Score', bigVal:'1443', bigUnit:'', bigLabel:'Words Played',
@@ -101,6 +101,9 @@
             bigVal:'Infinite Minesweeper', bigLabel:'Endless board, classic rules — a sharp logic fix',
             linkUrl:'https://play.google.com/store/apps/details?id=com.grykuby.minesweeper&pcampaignid=web_share', linkIcon:'💣', linkLabel:'Play Infinite Minesweeper',
             sideIcon:'assets/icons/mine.svg', sideAlt:'Mine' },
+            { type:'image', title:'Instagram-Feed', src:'assets/images/Selfie.png',
+              url:'https://www.instagram.com/pawndaring/' },
+
         ]}
       ]
     },
@@ -113,12 +116,6 @@
           header: 'Goal Progression',
           commentary: 'A track record, you might not Git it...',
           cards: [
-
-          { type:'stat', title:'Prototype Survival Rate', bigVal:'25', bigUnit:'%', bigLabel:'Projects that evolve into something bigger',
-            pills:[{v:'1/4',l:'Survived'},{v:'RIP',l:'The Rest'}] },
-          { type:'chart', title:'Output Type Distribution', chartType:'doughnut',
-            labels:['Web Apps','Games','Tools','Misc'],
-            data:[40,15,25,20], colors:['#c94e44','#5b8a8a','#b5736b','#8b5e5a'], centerIcon:'assets/icons/poop.png'},
           { type:'git-graph', title:'Progression Log',
             lanes:['#3e6868','#c94e44','#c1ab85'],
             entries:[
@@ -133,7 +130,12 @@
               { lane:1, msg:'Still Exploring' },
               { lane:0, msg:'Interactive Data', merge:1},
               { lane:0, msg:'Integrated Direction', merge:2, tag:'Q2' }
-            ]}
+            ]},
+          { type:'stat', title:'Prototype Survival Rate', bigVal:'25', bigUnit:'%', bigLabel:'Projects that evolve into something bigger',
+            pills:[{v:'1/4',l:'Survived'},{v:'RIP',l:'The Rest'}] },
+          { type:'chart', title:'Output Type Distribution', chartType:'doughnut',
+            labels:['Web Apps','Games','Tools','Misc'],
+            data:[40,15,25,20], colors:['#c94e44','#5b8a8a','#b5736b','#8b5e5a'], centerIcon:'assets/icons/poop.png'}
         ]},
         /* ── Scene 2: Flexibility & Training ── */
         { label: '2',
@@ -192,8 +194,7 @@
           ] },
           { type:'stat', title:'2026 Big Travels', bigVal:'Low %', bigUnit:'', bigLabel:'Forward motion — minor setbacks, meaningful leaps' },
           { type:'contribution-grid', title:'Daily Selfie Tracker',
-            squares: 89, teal: 74, pink: 14, black: 2, caption:'1 selfie/day · 1 follower · 2 days missed' },
-          { type:'image', title:'Instagram-Feed', src:'assets/images/Selfie.png' },   
+            squares: 89, teal: 74, pink: 14, black: 2, caption:'1 selfie/day · 1 follower · 2 days missed' }
         ]}
       ]
     }

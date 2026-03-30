@@ -10,7 +10,7 @@
     /* ── ACT 1: CALM — settling in (HR 66-72) ── */
     { tag:'SYS',    msg:'Presentation mode initializing…', hr:66 },
     { tag:'SCAN',   msg:'Room mapped — 24 Coworkers, 3 standing, 1 laptop open', hr:68 },
-    { tag:'PREP',   msg:'James-Clourd loaded. 18 slides. 5 min window.', hr:68 },
+    { tag:'PREP',   msg:'James-Cloud loaded. 18 slides. 5 min window.', hr:68 },
     { tag:'BREATH', msg:'Diaphragm rhythm locked — 14/min', hr:67 },
     { tag:'SELF',   msg:'Start presenting so we can get this over with.', whisper:true, hr:68 },
     { tag:'MOOD',   msg:'Serotonin nominal — mild anticipation detected', hr:69 },
@@ -20,6 +20,8 @@
     { tag:'SELF',   msg:'Deep breath. It is only scary in your mind.', whisper:true, hr:69 },
     { tag:'OPEN',   msg:'"Good Morning everyone…" — delivery: smooth', hr:71 },
     { tag:'FLOW',   msg:'Slide 1 → Slide 2 transitioning', hr:70 },
+    { tag:'OPEN',   msg:'Hey! stop reading my mind!!', hr:71 },
+
 
     /* ── ACT 2: FIRST CRACKS — unease builds (HR 74-90) ── */
     { tag:'SCAN',   msg:'Front row — someone frowning. Why?', hr:76 },
