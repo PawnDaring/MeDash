@@ -69,7 +69,7 @@
           { type:'chart', title:'Emotional Load Index', chartType:'line',
           labels:['N','D','J','F','M','A'],
           data:[10,11,15,20,30,25], color:'#c94e44', fill:true },
-          { type:'video', title:'Pursuits', src:'assets/video/Pursuits.mp4' },
+          { type:'video', title:'Pursuits', src:'assets/video/pursuits.mp4' },
         ]},
         /* ── Scene 2: Strength & Climbing ── */
         { label: '2',
